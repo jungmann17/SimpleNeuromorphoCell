@@ -2,9 +2,9 @@
 
 NEURON {
 	SUFFIX sAHP
+	RANGE gk, i, ctau, cinf, gsAHPbar
 	USEION k READ ek WRITE ik
-	USEION cas READ casi VALENCE 2 
-        RANGE gk, i , ctau, cinf, gsAHPbar : ,ik
+	USEION cas READ casi VALENCE 2
 }
 
 UNITS {

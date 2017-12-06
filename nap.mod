@@ -8,14 +8,15 @@ ENDCOMMENT
 
 INDEPENDENT { t FROM 0 TO 1 WITH 1 (ms) }
 
+NEURON { 
+	SUFFIX nap
+	RANGE i, minf, mtau, gnap, gbar, vhalf, k
+	USEION na READ ena WRITE ina
+}
+
 UNITS { 
 	(mV) = (millivolt) 
 	(mA) = (milliamp) 
-} 
-NEURON { 
-	SUFFIX nap
-	USEION na READ ena WRITE ina
-	RANGE i, minf, mtau, gnap, gbar :, vhalf, k
 }
 
 PARAMETER { 

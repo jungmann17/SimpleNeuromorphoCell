@@ -1,5 +1,11 @@
 TITLE I-h channel from Magee 1998 for distal dendrites
 
+NEURON {
+	SUFFIX hd
+	RANGE ghd, i, ghdbar, vhalfl, linf, taul
+	NONSPECIFIC_CURRENT i
+}
+
 UNITS {
 	(mA) = (milliamp)
 	(mV) = (millivolt)
@@ -21,13 +27,6 @@ PARAMETER {
 	qtl=1
 }
 
-
-NEURON {
-	SUFFIX hd
-	NONSPECIFIC_CURRENT i
-        RANGE ghd, i, ghdbar :, vhalfl
-        RANGE linf,taul
-}
 
 STATE {
         l

@@ -2,6 +2,12 @@ TITLE K-A channel from Klee Ficker and Heinemann
 : modified to account for Dax A Current --- M.Migliore Jun 1997
 : modified to be used with cvode  M.Migliore 2001
 
+NEURON {
+	SUFFIX kap
+	RANGE gka, gkabar, i, ninf, linf, taul, taun, lmin, ik
+	USEION k READ ek WRITE ik
+}
+
 UNITS {
 	(mA) = (milliamp)
 	(mV) = (millivolt)
@@ -29,13 +35,6 @@ PARAMETER {
 		ek
 }
 
-
-NEURON {
-	SUFFIX kap
-	USEION k READ ek WRITE ik
-        RANGE gka ,gkabar, i, ninf, linf
-        RANGE taul,taun : ,lmin
-}
 
 STATE {
 	n

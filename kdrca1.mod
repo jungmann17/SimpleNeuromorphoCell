@@ -3,6 +3,12 @@ TITLE K-DR channel
 : modified to account for Dax et al.
 : M.Migliore 1997
 
+NEURON {
+	SUFFIX kdr
+	RANGE gkdr, i, gbar, ik, ninf, taun
+	USEION k READ ek WRITE ik
+}
+
 UNITS {
 	(mA) = (milliamp)
 	(mV) = (millivolt)
@@ -23,13 +29,6 @@ PARAMETER {
 	qt=1
 }
 
-
-NEURON {
-	SUFFIX kdr
-	USEION k READ ek WRITE ik
-        RANGE gkdr, i, gbar
-	RANGE ninf,taun
-}
 
 STATE {
 	n

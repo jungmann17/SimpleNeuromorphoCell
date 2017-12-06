@@ -6,8 +6,8 @@ TITLE na3
 NEURON {
 	SUFFIX na3
 	USEION na READ ena WRITE ina
-	RANGE  gbar, ar2
-	GLOBAL minf, hinf, mtau, htau, sinf, taus,qinf, thinf
+	RANGE gbar, ar2, ina
+	GLOBAL minf, hinf, mtau, htau, sinf, taus, qinf, thinf
 }
 
 PARAMETER {

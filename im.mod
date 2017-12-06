@@ -2,9 +2,8 @@
 
 NEURON {
 	SUFFIX im
+	RANGE gm, i, gbar, ninf, taun
 	USEION k READ ek WRITE ik
-	RANGE gm, i,  gbar
-	RANGE ninf, taun
 }
 
 UNITS {

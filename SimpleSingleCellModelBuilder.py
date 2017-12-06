@@ -65,8 +65,14 @@ stimulation_string = '\n# ----- Stimulation Parameters -----\n'
 vec_creation_string = '\n# ----- Create Vectors to Record Plotting Parameters -----\nt_vec = h.Vector()\nccl_vec = ' \
                       'h.Vector()\nvcl_vec = h.Vector()\n'
 cell_creation_string = '\n# ----- Create Single Cell -----\nsimpleCell = CellTemplate.Cell()\n'
-rec_creation_string = '\n# ----- Create Recording for Each Parameter -----\nt_vec.record(h._ref_t)\n' \
-                      'ccl_vec.record(h._ref_i)\nvcl_vec.record(h._ref_v)\n'
+rec_creation_string_none = '\n# ----- Create Recording for Each Parameter -----\nt_vec.record(h._ref_t)\n'
+rec_creation_string_both = '\n# ----- Create Recording for Each Parameter -----\nt_vec.record(h._ref_t)\n' \
+                      'ccl_vec.record(ccl._ref_i)\nvcl_vec.record(vcl._ref_v)\n'
+rec_creation_string_i = '\n# ----- Create Recording for Each Parameter -----\nt_vec.record(h._ref_t)\n' \
+                      'ccl_vec.record(ccl._ref_i)\n'
+rec_creation_string_v = '\n# ----- Create Recording for Each Parameter -----\nt_vec.record(h._ref_t)\n' \
+                      'ccl_vec.record(ccl._ref_i)\n'
+rec_creation_string = ''
 run_sim_string = '\n# ----- Run Simulation and Plot Figures -----\nh.run()\n'
 
 readMeString = '\nSimple Single Cell Model Creator.\nYou will be asked a series of questions to create your ' \
@@ -175,7 +181,7 @@ def create_vclamp():
     section = raw_input('\nEnter voltage clamp section in Cell: ')
     while not check_section(section, 'v_section'):
         # print "Section is not valid. Please try again."
-        section = raw_input('\nInvalid section. Valid Sections are *, *, *: ')
+        section = raw_input('\nInvalid section, please try again: ')
 
     location = raw_input('\nEnter voltage clamp location in Cell: ')
     while not check_input(location, 'v_location', 1):
@@ -198,43 +204,49 @@ def create_vclamp():
 def get_recording_params():
     possible_record_list = []
     mod_list = []
-    range_flag = 0
     count = 0
     record_types = []
     suffix_array = []
     mod_list += [each for each in os.listdir(".") if each.endswith('.mod')]
+    print mod_list
     for each_file in mod_list:
+        range_flag = 0
         file_pointer = open(each_file, 'r')
         for line in file_pointer:
             split_line = line.split()
             if split_line:
                 if range_flag > 1 and split_line[0] == "}":
+                    print "breaking.."
                     break
                 if split_line[0] == "SUFFIX":
+                    # print "found suffix.."
                     suffix = split_line[1]
                     suffix_array.append(suffix)
                 elif split_line[0] == "RANGE":
+                    # print "found range..suffix = {0}".format(suffix)
                     range_flag += 1
                     for i in range(1, len(split_line)):
                         count += 1
                         s = split_line[i].strip(',')
                         split_line[i] = s
+                        # print '{0}_{1}\tcount={2}'.format(split_line[i], suffix, count)
                         possible_record_list.append('{0}_{1}'.format(split_line[i], suffix))
         if count != 0:
             record_types.append(count)
             count = 0
-    if stimulation_param == 'i':
-        possible_record_list.append('ccl_i')
-        possible_record_list.append('v')
-    elif stimulation_param == 'v':
-        possible_record_list.append('vcl_i')
-        possible_record_list.append('v')
-    elif stimulation_param == 'both':
-        possible_record_list.append('ccl_i')
-        possible_record_list.append('v')
-        possible_record_list.append('vcl_i')
-    elif stimulation_param == "none":
-        possible_record_list.append('v')
+    # if stimulation_param == 'i':
+        # # possible_record_list.append('ccl_i')
+        # possible_record_list.append('v')
+    # elif stimulation_param == 'v':
+        # # possible_record_list.append('vcl_i')
+        # possible_record_list.append('v')
+    # elif stimulation_param == 'both':
+        # #possible_record_list.append('ccl_i')
+        # possible_record_list.append('v')
+        # # possible_record_list.append('vcl_i')
+    # elif stimulation_param == "none":
+    possible_record_list.append('v')
+    print record_types
     return possible_record_list, record_types, suffix_array
 
 
@@ -242,38 +254,37 @@ def print_possible_recording_params(possible_list, num_types, suf_array):
     count = 0
     range_1 = 0
     range_2 = 0
-    last_element = 0
+    # last_element = 0
     print '\nPossible recording traces can be placed on these currents, voltages, channels, and cell parameters\n' \
-          'Cell: v'
-    if stimulation_param == 'i':
-        print 'Current Clamp: ccl_i'
-    elif stimulation_param == 'v':
-        print 'Voltage Clamp: vcl_i'
-    elif stimulation_param == 'both':
-        print 'Current Clamp: ccl_i'
-        print 'Voltage Clamp: vcl_i'
+          'If you selected a current clamp or voltage clamp it will be automatically included in the recording' \
+		  'traces.\nCell: v'
+    # if stimulation_param == 'i':
+        # print 'Current Clamp: ccl_i'
+    # elif stimulation_param == 'v':
+        # print 'Voltage Clamp: vcl_i'
+    # elif stimulation_param == 'both':
+        # print 'Current Clamp: ccl_i'
+        # print 'Voltage Clamp: vcl_i'
+    # print possible_list
+	
     for num in num_types:
         list_string = ''
-        if num == num_types[len(num_types) - 1]:
-            range_1 = last_element
+        if range_1 == 0:
             range_2 = num
-            last_element = num
-        elif count == 0:
-            range_1 = 0
-            range_2 = num
-            last_element += num
-        elif count > 0:
-            range_1 = last_element
+        else:
+            range_1 = range_2
             range_2 += num
-            last_element += num
         for i in range(range_1, range_2):
             if possible_list[i] != 'ccl_i' or possible_list[i] != 'vcl_i' or possible_list[i] != 'v':
-                if possible_list[i] != possible_list[last_element - 1]:
+                if possible_list[i] != possible_list[range_2 - 1]:
                     list_string += '{0}, '.format(possible_list[i])
                 else:
                     list_string += '{0}'.format(possible_list[i])
+            else:
+                print 'Error: {0}'.format(possible_list[i])
         print str(suf_array[count]) + ': ' + list_string
         count += 1
+        range_1 = range_2
     print ''
 
 
@@ -297,10 +308,25 @@ def check_recording(params):
         return True
 
 
-def create_recordings():
+def create_recordings(stim_params):
     # Fix ccl_i, v, and vcl_i vectors and recording creations
     rec_string = ''
     global rec_creation_string
+    if stim_params == 'i':
+        global rec_creation_string_i
+        rec_creation_string = rec_creation_string_i
+    elif stim_params == 'v':
+        global rec_creation_string_v
+        rec_creation_string = rec_creation_string_v
+    elif stim_params == 'both':
+        global rec_creation_string_both
+        rec_creation_string = rec_creation_string_both
+    elif stim_params == 'none':
+        global rec_creation_string_none
+        rec_creation_string = rec_creation_string_both
+    else:
+        print '\nError reading stimulation parameters.'
+        rec_creation_string = rec_creation_string_none
     rec_params = raw_input('Enter all current, voltage, channel, and cell parameters that you would like to record\n'
                            'divided by a comma. Example: (glbar_leak, gkdrbar_kdr): ')
     while not check_recording(rec_params):
@@ -323,19 +349,44 @@ def print_parameters():
     print("Integration Interval: " + str(simDictionary['h.dt']) + "\n")
 
 
-def setup_run_sim():
+def setup_run_sim(stim_params):
     plot_string = '\n# ----- Create Plots to Visualize Results -----\n'
     for i in range(0, len(rec_array)):
         if rec_array[i] == 'v':
-            plot_string += 'pyplot.figure(figsize=(8, 8))\nplot_v, = pyplot.plot(t_vec, v_vec, \'b\', label=' \
+            if stim_params == 'i':
+                plot_string += 'pyplot.figure(figsize=(8, 8))\nplot_v, = pyplot.plot(t_vec, v_vec, \'b\', label=' \
+                           '\'simpleCell.soma.v\')\npyplot.xlim(0, h.tstop)\npyplot.ylabel(\'mV\')\npyplot.legend' \
+                           '(handles=[plot_v])\npyplot.title(\'Soma Voltage\')\n' \
+                           'pyplot.figure(figsize=(8, 8))\nplot_ccl, = pyplot.plot(t_vec, ccl_vec, \'r\', label=' \
+                           '\'ccl.i\')\npyplot.xlim(0, h.tstop)\npyplot.ylabel(\'nA\')\npyplot.legend' \
+                           '(handles=[plot_ccl])\npyplot.title(\'Current Clamp\')\n'
+            elif stim_params == 'v':
+                plot_string += 'pyplot.figure(figsize=(8, 8))\nplot_v, = pyplot.plot(t_vec, v_vec, \'b\', label=' \
+                           '\'simpleCell.soma.v\')\npyplot.xlim(0, h.tstop)\npyplot.ylabel(\'mV\')\npyplot.legend' \
+                           '(handles=[plot_v])\npyplot.title(\'Soma Voltage\')\n' \
+                           'pyplot.figure(figsize=(8, 8))\nplot_vcl, = pyplot.plot(t_vec, vcl_vec, \'r\', label=' \
+                           '\'vcl.v\')\npyplot.xlim(0, h.tstop)\npyplot.ylabel(\'mV\')\npyplot.legend' \
+                           '(handles=[plot_vcl])\npyplot.title(\'Voltage Clamp\')\n'
+            elif stim_params == 'both':
+                plot_string += 'pyplot.figure(figsize=(8, 8))\nplot_v, = pyplot.plot(t_vec, v_vec, \'b\', label=' \
+                           '\'simpleCell.soma.v\')\npyplot.xlim(0, h.tstop)\npyplot.ylabel(\'mV\')\npyplot.legend' \
+                           '(handles=[plot_v])\npyplot.title(\'Soma Voltage\')\n' \
+                           'pyplot.figure(figsize=(8, 8))\nplot_vcl, = pyplot.plot(t_vec, vcl_vec, \'r\', label=' \
+                           '\'vcl.v\')\npyplot.xlim(0, h.tstop)\npyplot.ylabel(\'mV\')\npyplot.legend' \
+                           '(handles=[plot_vcl])\npyplot.title(\'Voltage Clamp\')\n'\
+                           'pyplot.figure(figsize=(8, 8))\nplot_vcl, = pyplot.plot(t_vec, vcl_vec, \'r\', label=' \
+                           '\'vcl.v\')\npyplot.xlim(0, h.tstop)\npyplot.ylabel(\'mV\')\npyplot.legend' \
+                           '(handles=[plot_vcl])\npyplot.title(\'Voltage Clamp\')\n'
+            elif stim_params == 'none':
+                plot_string += 'pyplot.figure(figsize=(8, 8))\nplot_v, = pyplot.plot(t_vec, v_vec, \'b\', label=' \
                            '\'simpleCell.soma.v\')\npyplot.xlim(0, h.tstop)\npyplot.ylabel(\'mV\')\npyplot.legend' \
                            '(handles=[plot_v])\npyplot.title(\'Soma Voltage\')\n'
         else:
             plot_string += 'pyplot.figure(figsize=(8, 8))\n'
-            plot_string += 'plot_{1}, = pyplot.plot(t_vec, {0}, \'b\', label=\'simpleCell.soma.{1}\')\n'.format(
+            plot_string += 'plot_{1}, = pyplot.plot(t_vec, {0}, \'b\', label=\'{1}\')\n'.format(
                 rec_vec_array[i], rec_array[i])
             plot_string += 'pyplot.xlim(0, h.tstop)\npyplot.ylabel(\'mV\')\npyplot.legend' \
-                           '(handles=[plot_v])\npyplot.title(\'Soma Voltage\')\n'
+                           '(handles=[plot_{0}])\npyplot.title(\'{0}\')\n'.format(rec_array[i])
     plot_string += 'pyplot.subplots_adjust(left=0.065, bottom=0.075, right=0.98, top=0.95, wspace=0.2, ' \
                    'hspace=0.25)\npyplot.legend()\npyplot.show()\n'
     return plot_string
@@ -344,7 +395,8 @@ def setup_run_sim():
 def create_model_file():
     global model_file_string
     model_file_string += header_string + func_def_string + cell_creation_string + simulation_string + \
-                         stimulation_string + vec_creation_string + rec_creation_string + plotting_string
+                         stimulation_string + vec_creation_string + rec_creation_string + \
+						 run_sim_string + plotting_string
     # Open new file for model creation
     new_file = open('NewSimpleModel.py', 'w')
     new_file.write(model_file_string)
@@ -400,8 +452,8 @@ elif stimulation_param == "v":
 # noinspection PyRedeclaration
 recording_list, num_record_types, suffix = get_recording_params()
 print_possible_recording_params(recording_list, num_record_types, suffix)
-vec_creation_string += create_recordings()
-plotting_string = setup_run_sim()
+vec_creation_string += create_recordings(stimulation_param)
+plotting_string = setup_run_sim(stimulation_param)
 
 # Now have all information needed to create the new model file for user to run
 create_model_file()
